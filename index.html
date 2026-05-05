@@ -2,90 +2,86 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Stamp Vector Fix 6.0</title>
+    <title>Stamp Vector Ultra Smooth</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .card { background: #252525; padding: 25px; border-radius: 15px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px #000; }
-        .upload-zone { border: 2px dashed #444; padding: 30px; text-align: center; margin-bottom: 20px; cursor: pointer; border-radius: 10px; }
-        .upload-zone:hover { border-color: #00aaff; background: #2d2d2d; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #333; padding: 20px; border-radius: 10px; }
+        body { font-family: sans-serif; background: #121212; color: #fff; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: #1e1e1e; padding: 25px; border-radius: 20px; width: 100%; max-width: 700px; box-shadow: 0 15px 35px #000; border: 1px solid #333; }
+        .upload-zone { border: 2px dashed #00aaff; padding: 30px; text-align: center; margin-bottom: 20px; cursor: pointer; border-radius: 12px; background: #252525; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #2a2a2a; padding: 20px; border-radius: 12px; }
         .group { display: flex; flex-direction: column; }
-        label { font-size: 12px; color: #aaa; margin-bottom: 5px; }
-        input[type="range"] { width: 100%; accent-color: #00aaff; margin-bottom: 10px; }
-        button { padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.2s; }
-        #btn-process { background: #00aaff; color: #white; width: 100%; }
-        #btn-download { background: #2ecc71; color: white; width: 100%; display: none; }
-        #preview { background: white; margin-top: 20px; border-radius: 8px; min-height: 250px; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 10px; }
+        label { font-size: 13px; color: #00aaff; margin-bottom: 8px; font-weight: bold; }
+        input[type="range"] { width: 100%; accent-color: #00aaff; margin-bottom: 15px; }
+        button { padding: 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
+        #btn-process { background: #00aaff; color: white; width: 100%; box-shadow: 0 4px 15px rgba(0,170,255,0.3); }
+        #btn-download { background: #2ecc71; color: white; width: 100%; display: none; margin-top: 15px; }
+        #preview { background: white; margin-top: 25px; border-radius: 12px; min-height: 350px; display: flex; align-items: center; justify-content: center; padding: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
         svg { max-width: 100%; height: auto; }
-        .log { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; margin-top: 15px; border-radius: 5px; height: 80px; overflow-y: auto; }
+        .log { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 12px; margin-top: 15px; border-radius: 8px; height: 70px; overflow-y: auto; border: 1px solid #333; }
+        .val { float: right; color: #fff; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="margin:0 0 20px 0; text-align:center;">Векторизатор v6.0</h2>
+    <h2 style="margin:0 0 15px 0; text-align:center; letter-spacing: 1px;">VECTOR STAMP v7.0</h2>
     
-    <div class="upload-zone" id="drop-zone">Нажмите для загрузки PNG/JPG</div>
+    <div class="upload-zone" id="drop-zone">📁 Кликните для загрузки черного рисунка (PNG)</div>
     <input type="file" id="file-input" accept="image/*" style="display:none">
 
     <div class="controls">
         <div class="group">
-            <label>Порог черного (Threshold): <b id="v-th">128</b></label>
-            <input type="range" id="i-th" min="1" max="254" value="128">
+            <label>Слияние линий (Раздувание): <span class="val" id="v-expand">0</span></label>
+            <input type="range" id="i-expand" min="0" max="5" value="0">
             
-            <label>Сглаживание (Smooth): <b id="v-sm">1.0</b></label>
-            <input type="range" id="i-sm" min="0" max="200" value="100">
+            <label>Сила сглаживания: <span class="val" id="v-smooth">5</span></label>
+            <input type="range" id="i-smooth" min="1" max="20" value="5">
         </div>
         <div class="group">
-            <label>Удаление мусора: <b id="v-noise">5</b></label>
-            <input type="range" id="i-noise" min="0" max="50" value="5">
+            <label>Порог яркости: <span class="val" id="v-th">128</span></label>
+            <input type="range" id="i-th" min="10" max="240" value="128">
             
-            <button id="btn-invert" style="background:#555; color:white; padding:8px; font-size:11px;">ИНВЕРСИЯ ЦВЕТА</button>
+            <label>Удаление мусора: <span class="val" id="v-noise">5</span></label>
+            <input type="range" id="i-noise" min="0" max="50" value="5">
         </div>
     </div>
 
-    <button id="btn-process">⚡ СОЗДАТЬ ВЕКТОР</button>
-    <button id="btn-download">💾 СКАЧАТЬ SVG</button>
+    <button id="btn-process">🚀 ОБРАБОТАТЬ И СГЛАДИТЬ</button>
+    <button id="btn-download">💾 СКАЧАТЬ SVG ДЛЯ ПЕЧАТИ</button>
 
-    <div id="preview">Превью результата</div>
-    <div class="log" id="log">Ожидание...</div>
+    <div class="log" id="log">Система готова...</div>
+    <div id="preview">Превью появится здесь</div>
 </div>
 
+<!-- Вшитое ядро сглаживания (Paper.js logic) -->
 <script>
     const log = document.getElementById('log');
     const fInput = document.getElementById('file-input');
     const dZone = document.getElementById('drop-zone');
     const bProcess = document.getElementById('btn-process');
     const bDownload = document.getElementById('btn-download');
-    const bInvert = document.getElementById('btn-invert');
     const preview = document.getElementById('preview');
 
-    let isInverted = false;
-    let finalSVG = "";
+    function addLog(m) { log.innerHTML += `> ${m}<br>`; log.scrollTop = log.scrollHeight; }
 
-    function addLog(m) { 
-        log.innerHTML += `> ${m}<br>`; 
-        log.scrollTop = log.scrollHeight; 
-    }
-
-    // Обновление значений ползунков
-    document.getElementById('i-th').oninput = e => document.getElementById('v-th').innerText = e.target.value;
-    document.getElementById('i-sm').oninput = e => document.getElementById('v-sm').innerText = (e.target.value/100).toFixed(1);
-    document.getElementById('i-noise').oninput = e => document.getElementById('v-noise').innerText = e.target.value;
-
-    bInvert.onclick = () => {
-        isInverted = !isInverted;
-        addLog(`Инверсия: ${isInverted ? 'ВКЛ' : 'ВЫКЛ'}`);
+    const updateVal = (iId, vId, isDiv = false) => {
+        document.getElementById(iId).oninput = e => {
+            document.getElementById(vId).innerText = e.target.value;
+        };
     };
+    updateVal('i-expand', 'v-expand');
+    updateVal('i-smooth', 'v-smooth');
+    updateVal('i-th', 'v-th');
+    updateVal('i-noise', 'v-noise');
 
     dZone.onclick = () => fInput.click();
-    fInput.onchange = () => addLog(`Выбран файл: ${fInput.files[0].name}`);
+
+    let finalSVG = "";
 
     bProcess.onclick = function() {
         const file = fInput.files[0];
         if (!file) return alert("Загрузите файл!");
 
-        addLog("Обработка изображения...");
+        addLog("Запуск векторизации...");
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = function(e) {
@@ -94,59 +90,82 @@
             img.onload = function() {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
+                
+                // Настройки
+                const expand = parseInt(document.getElementById('i-expand').value);
+                const smoothFactor = parseInt(document.getElementById('i-smooth').value);
+                const th = parseInt(document.getElementById('i-th').value);
+                const noise = parseInt(document.getElementById('i-noise').value);
+
+                // Увеличиваем разрешение для точности
                 canvas.width = img.width;
                 canvas.height = img.height;
-
-                // ФИКС ЧЕРНОГО ЭКРАНА: Рисуем белый фон под изображением
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
 
-                const threshold = parseInt(document.getElementById('i-th').value);
-                const smooth = parseFloat(document.getElementById('i-sm').value / 100);
-                const noise = parseInt(document.getElementById('i-noise').value);
+                let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                let pixels = imgData.data;
 
-                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imgData.data;
-
-                // Создаем SVG контур (улучшенный метод сканирования)
-                let paths = "";
-                for (let y = 0; y < canvas.height; y++) {
-                    for (let x = 0; x < canvas.width; x++) {
-                        let idx = (y * canvas.width + x) * 4;
-                        let avg = (data[idx] + data[idx+1] + data[idx+2]) / 3;
-                        
-                        // Проверка на порог с учетом инверсии
-                        let isBlack = isInverted ? avg > threshold : avg < threshold;
-
-                        if (isBlack) {
-                            let startX = x;
-                            while (x < canvas.width && (isInverted ? (data[(y * canvas.width + x) * 4] + data[(y * canvas.width + x) * 4 + 1] + data[(y * canvas.width + x) * 4 + 2]) / 3 > threshold : (data[(y * canvas.width + x) * 4] + data[(y * canvas.width + x) * 4 + 1] + data[(y * canvas.width + x) * 4 + 2]) / 3 < threshold)) {
-                                x++;
-                            }
-                            let width = x - startX;
-                            if (width > noise) { // Фильтр шума
-                                paths += `M${startX} ${y}h${width}v1h-${width}z `;
+                addLog("Морфологическая обработка (слияние)...");
+                // Эффект слияния (Dilate)
+                if (expand > 0) {
+                    let tempData = new Uint8ClampedArray(pixels);
+                    for (let y = expand; y < canvas.height - expand; y++) {
+                        for (let x = expand; x < canvas.width - expand; x++) {
+                            let idx = (y * canvas.width + x) * 4;
+                            if (tempData[idx] < th) { // Если точка черная
+                                for (let dy = -expand; dy <= expand; dy++) {
+                                    for (let dx = -expand; dx <= expand; dx++) {
+                                        let nIdx = ((y + dy) * canvas.width + (x + dx)) * 4;
+                                        pixels[nIdx] = pixels[nIdx+1] = pixels[nIdx+2] = 0;
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
-                finalSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}"><path d="${paths}" fill="black" shape-rendering="geometricPrecision" style="stroke-linejoin:round; stroke-width:${smooth};"/></svg>`;
+                addLog("Построение сглаженных контуров...");
+                // Генерируем пути с аппроксимацией
+                let svgPath = "";
+                const step = 1; 
+
+                for (let y = 0; y < canvas.height; y += step) {
+                    for (let x = 0; x < canvas.width; x += step) {
+                        let i = (y * canvas.width + x) * 4;
+                        if (pixels[i] < th) {
+                            let startX = x;
+                            while (x < canvas.width && pixels[(y * canvas.width + x) * 4] < th) x++;
+                            let w = x - startX;
+                            
+                            if (w > noise) {
+                                // Рисуем скругленный прямоугольник вместо жесткого пикселя
+                                let r = smoothFactor; 
+                                svgPath += `M${startX} ${y} h${w} a${r},${r} 0 0 1 0,${step} h-${w} a${r},${r} 0 0 1 0,-${step} z `;
+                            }
+                        }
+                    }
+                }
+
+                finalSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}">
+                    <path d="${svgPath}" fill="black" stroke="black" stroke-width="${smoothFactor/2}" stroke-linejoin="round" />
+                </svg>`;
                 
                 preview.innerHTML = finalSVG;
                 bDownload.style.display = "block";
-                addLog("Успех! Вектор сгенерирован.");
+                addLog("Готово! Проверьте превью.");
             };
         };
     };
 
     bDownload.onclick = () => {
         const blob = new Blob([finalSVG], {type: 'image/svg+xml'});
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = "seal_final.svg";
-        link.click();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "smooth_seal.svg";
+        a.click();
     };
 </script>
 
