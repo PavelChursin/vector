@@ -2,125 +2,155 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Векторизатор Печатей (Автономный)</title>
+    <title>Векторизатор Печатей + LOGS</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; width: 100%; max-width: 550px; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
-        .upload-box { border: 2px dashed #3498db; padding: 40px 20px; border-radius: 12px; margin-bottom: 20px; cursor: pointer; transition: 0.3s; background: #f8fbff; }
-        .upload-box:hover { background: #eff6ff; border-color: #2980b9; }
-        .controls { text-align: left; background: #fdfdfd; padding: 15px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; }
-        label { display: flex; justify-content: space-between; font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #444; }
-        input[type="range"] { width: 100%; margin-bottom: 15px; accent-color: #3498db; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        #btn-process { background: #3498db; color: white; margin-bottom: 10px; }
-        #btn-process:hover { background: #2980b9; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; width: 100%; max-width: 600px; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .upload-area { border: 2px dashed #3498db; padding: 30px; border-radius: 10px; text-align: center; cursor: pointer; margin-bottom: 20px; background: #f8fbff; }
+        .controls { display: grid; gap: 15px; margin-bottom: 20px; padding: 15px; background: #fafafa; border-radius: 8px; }
+        label { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
+        input[type="range"] { width: 100%; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        #btn-process { background: #3498db; color: white; }
         #btn-download { background: #27ae60; color: white; display: none; }
-        #btn-download:hover { background: #219150; }
-        #preview { margin-top: 25px; border: 2px solid #eee; border-radius: 8px; padding: 10px; background: white; min-height: 200px; display: flex; align-items: center; justify-content: center; }
-        svg { max-width: 100%; height: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
-        .status { font-size: 13px; color: #666; margin-top: 10px; }
+        
+        /* Стили лога */
+        #log-container { margin-top: 20px; background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 12px; max-height: 150px; overflow-y: auto; text-align: left; }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 2px; }
+        .log-success { color: #4ec9b0; }
+        .log-error { color: #f44747; font-weight: bold; }
+        .log-info { color: #569cd6; }
+
+        #preview { margin-top: 20px; border: 1px solid #ddd; background: white; min-height: 100px; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        svg { max-width: 100%; height: auto; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="margin-top:0; color: #2c3e50;">Печать в Вектор</h2>
-    <p style="color: #7f8c8d; font-size: 14px;">Конвертация PNG в сглаженный SVG для клише</p>
+    <h2 style="margin-top:0">Векторизатор v4 (с логами)</h2>
     
-    <div class="upload-box" id="drop-zone">
-        <span id="file-name">Нажмите, чтобы выбрать файл</span>
+    <div class="upload-area" id="drop-zone">
+        <span id="file-label">📁 Выберите или перетащите PNG/JPG</span>
+        <input type="file" id="file-input" accept="image/*" style="display:none">
     </div>
-    <input type="file" id="file-input" accept="image/png, image/jpeg" style="display: none;">
 
     <div class="controls">
-        <label>Сглаживание углов: <span id="val-alpha">1.0</span></label>
-        <input type="range" id="input-alpha" min="0" max="130" value="100">
-        
-        <label>Чистка мелких деталей: <span id="val-turd">3</span></label>
-        <input type="range" id="input-turd" min="0" max="50" value="3">
+        <div>
+            <label>Сглаживание: <span id="v-alpha">1.0</span></label>
+            <input type="range" id="i-alpha" min="0" max="130" value="100">
+        </div>
+        <div>
+            <label>Удаление мусора (размер): <span id="v-turd">3</span></label>
+            <input type="range" id="i-turd" min="0" max="100" value="3">
+        </div>
     </div>
 
-    <button id="btn-process">Векторизировать</button>
-    <button id="btn-download">Скачать SVG (.svg)</button>
+    <button id="btn-process">🚀 ЗАПУСТИТЬ ВЕКТОРИЗАЦИЮ</button>
+    <button id="btn-download">💾 СКАЧАТЬ SVG</button>
 
-    <div id="status" class="status"></div>
-    <div id="preview">Тут будет предпросмотр</div>
+    <div id="preview">Превью будет здесь</div>
+
+    <!-- Панель логов -->
+    <div id="log-container">
+        <div class="log-entry log-info">[Система]: Ожидание файла...</div>
+    </div>
 </div>
 
-<!-- Встраиваем Potrace напрямую (минифицированная версия) -->
 <script>
-/** Potrace.js (c) 2012-2013 Kilian Valkhof, Licensed under the GPL **/
-var Potrace=(function(){function Point(x,y){this.x=x;this.y=y}function Bitmap(w,h){this.w=w;this.h=h;this.size=w*h;this.data=new Int32Array(this.size)}Bitmap.prototype.get=function(x,y){return this.data[y*this.w+x]};Bitmap.prototype._index=function(x,y){return y*this.w+x};var imgData=null,bm=null,pathList=[];function loadImage(img){var canvas=document.createElement("canvas");canvas.width=img.width;canvas.height=img.height;var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0);var data=ctx.getImageData(0,0,img.width,img.height).data;bm=new Bitmap(img.width,img.height);for(var i=0,j=0;i<data.length;i+=4,j++){var res=(data[i]+data[i+1]+data[i+2])/3;bm.data[j]=res<128?1:0}}function getSVG(size){var b=bm;var str='<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="'+b.w*size+'" height="'+b.h*size+'" viewBox="0 0 '+b.w+' '+b.h+'">';str+='<path d="';for(var i=0;i<pathList.length;i++){var p=pathList[i];str+=renderPath(p)}str+='" fill="black" stroke="none" fill-rule="evenodd" /></svg>';return str}function renderPath(path){var res="",c=path.curve;res+="M"+c.tag[0].x+" "+c.tag[0].y;for(var i=0;i<c.n;i++){if(c.tag[i]=="CORNER"){res+="L"+c.c[i*3+1].x+" "+c.c[i*3+1].y+"L"+c.c[i*3+2].x+" "+c.c[i*3+2].y}else{res+="C"+c.c[i*3].x+" "+c.c[i*3].y+","+c.c[i*3+1].x+" "+c.c[i*3+1].y+","+c.c[i*3+2].x+" "+c.c[i*3+2].y}}res+="Z";return res}return{loadImageFromUrl:function(url,cb){var img=new Image();img.onload=function(){loadImage(img);if(cb)cb()};img.src=url},process:function(cb,opt){pathList=[];/* Упрощенная логика трассировки для автономности */
-/* Здесь должен быть полный алгоритм, но для краткости мы используем встроенную обертку */
-/* В реальном Potrace.js тут 1000 строк, я использую сокращенный метод загрузки через Blob если CDN упал */
-var script=document.createElement("script");script.src="https://cdnjs.cloudflare.com/ajax/libs/potrace/1.1.2/potrace.min.js";script.onload=cb;document.head.appendChild(script)},getSVG:function(s){return window.Potrace.getSVG(s)}}})();
-</script>
-
-<script>
-    // Основная логика интерфейса
+    const logContainer = document.getElementById('log-container');
     const fileInput = document.getElementById('file-input');
     const dropZone = document.getElementById('drop-zone');
     const btnProcess = document.getElementById('btn-process');
     const btnDownload = document.getElementById('btn-download');
     const preview = document.getElementById('preview');
-    const status = document.getElementById('status');
 
-    document.getElementById('input-alpha').oninput = (e) => document.getElementById('val-alpha').innerText = (e.target.value/100).toFixed(1);
-    document.getElementById('input-turd').oninput = (e) => document.getElementById('val-turd').innerText = e.target.value;
-
-    let currentSVGData = "";
-
-    dropZone.onclick = () => fileInput.click();
-    fileInput.onchange = (e) => { if(e.target.files[0]) document.getElementById('file-name').innerText = e.target.files[0].name; };
-
-    btnProcess.onclick = function() {
-        const file = fileInput.files[0];
-        if (!file) { alert("Выберите PNG файл"); return; }
-
-        status.innerText = "Обработка...";
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        
-        reader.onload = function(e) {
-            // Динамическая загрузка библиотеки если её нет
-            if (typeof Potrace === 'undefined' || !window.Potrace.process) {
-                const s = document.createElement('script');
-                s.src = "https://cdn.jsdelivr.net/npm/potrace@1.1.2/dist/potrace.min.js";
-                s.onload = () => runTrace(e.target.result);
-                s.onerror = () => { status.innerText = "Ошибка загрузки движка. Проверьте сеть."; };
-                document.head.appendChild(s);
-            } else {
-                runTrace(e.target.result);
-            }
-        };
-    };
-
-    function runTrace(dataUrl) {
-        window.Potrace.loadImageFromUrl(dataUrl);
-        window.Potrace.process(function() {
-            const options = {
-                alphaMax: parseFloat(document.getElementById('input-alpha').value / 100),
-                turdSize: parseInt(document.getElementById('input-turd').value),
-                optCurve: true
-            };
-            
-            // Применяем настройки
-            window.Potrace.process(function() {
-                currentSVGData = window.Potrace.getSVG(1);
-                preview.innerHTML = currentSVGData;
-                btnDownload.style.display = "block";
-                status.innerText = "Готово! Линии сглажены.";
-            }, options);
-        });
+    function addLog(text, type = 'info') {
+        const entry = document.createElement('div');
+        const time = new Date().toLocaleTimeString().split(' ')[0];
+        entry.className = `log-entry log-${type}`;
+        entry.innerHTML = `[${time}] ${text}`;
+        logContainer.appendChild(entry);
+        logContainer.scrollTop = logContainer.scrollHeight;
     }
 
-    btnDownload.onclick = function() {
-        const blob = new Blob([currentSVGData], {type: 'image/svg+xml'});
+    // Обновление цифр
+    document.getElementById('i-alpha').oninput = e => document.getElementById('v-alpha').innerText = (e.target.value/100).toFixed(1);
+    document.getElementById('i-turd').oninput = e => document.getElementById('v-turd').innerText = e.target.value;
+
+    dropZone.onclick = () => fileInput.click();
+    fileInput.onchange = () => {
+        if(fileInput.files[0]) addLog(`Файл выбран: ${fileInput.files[0].name}`, 'success');
+    };
+
+    let finalSVG = "";
+
+    btnProcess.onclick = async function() {
+        const file = fileInput.files[0];
+        if (!file) {
+            addLog("ОШИБКА: Файл не выбран", "error");
+            return;
+        }
+
+        addLog("Запуск процесса векторизации...", "info");
+
+        // Проверка библиотеки
+        if (typeof Potrace === 'undefined') {
+            addLog("Попытка загрузки движка Potrace...", "info");
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/potrace@1.1.2/dist/potrace.min.js";
+            document.head.appendChild(script);
+            
+            script.onload = () => {
+                addLog("Движок загружен успешно", "success");
+                processImage(file);
+            };
+            script.onerror = () => addLog("КРИТИЧЕСКАЯ ОШИБКА: Не удалось загрузить скрипт. Проверьте интернет или GitHub блокировки.", "error");
+        } else {
+            processImage(file);
+        }
+    };
+
+    function processImage(file) {
+        const reader = new FileReader();
+        addLog("Чтение данных изображения...", "info");
+        
+        reader.onload = function(e) {
+            addLog("Изображение считано. Трассировка контуров...", "info");
+            
+            try {
+                Potrace.loadImageFromUrl(e.target.result);
+                Potrace.process(function() {
+                    const options = {
+                        alphaMax: parseFloat(document.getElementById('i-alpha').value / 100),
+                        turdSize: parseInt(document.getElementById('i-turd').value),
+                        optCurve: true
+                    };
+
+                    addLog(`Параметры: Alpha=${options.alphaMax}, Turd=${options.turdSize}`, "info");
+
+                    Potrace.process(function() {
+                        finalSVG = Potrace.getSVG(1);
+                        preview.innerHTML = finalSVG;
+                        btnDownload.style.display = "block";
+                        addLog("УСПЕХ: Вектор создан и сглажен", "success");
+                    }, options);
+                });
+            } catch (err) {
+                addLog(`ОШИБКА ОБРАБОТКИ: ${err.message}`, "error");
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    btnDownload.onclick = () => {
+        const blob = new Blob([finalSVG], {type: 'image/svg+xml'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'seal_vector.svg';
+        a.href = url; a.download = 'pechat.svg';
         a.click();
+        addLog("Файл сохранен в Загрузки", "success");
     };
 </script>
 
