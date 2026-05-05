@@ -2,52 +2,53 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Ultra-Smooth Vector Stamp</title>
+    <title>Ultimate Contour Vector</title>
     <style>
-        body { font-family: sans-serif; background: #1a1a1b; color: #e8eaed; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: #202124; padding: 30px; border-radius: 12px; width: 100%; max-width: 800px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .upload-zone { border: 2px dashed #8ab4f8; padding: 40px; text-align: center; border-radius: 8px; cursor: pointer; background: #292a2d; margin-bottom: 20px; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #303134; padding: 20px; border-radius: 8px; }
-        .group { display: flex; flex-direction: column; }
-        label { font-size: 14px; margin-bottom: 8px; color: #8ab4f8; font-weight: bold; }
-        input[type="range"] { width: 100%; accent-color: #8ab4f8; margin-bottom: 15px; }
-        button { padding: 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 15px; }
-        #btn-process { background: #8ab4f8; color: #202124; width: 100%; }
-        #btn-download { background: #81c995; color: #202124; width: 100%; display: none; margin-top: 15px; }
-        #preview { background: #fff; margin-top: 25px; border-radius: 8px; min-height: 400px; display: flex; align-items: center; justify-content: center; padding: 10px; }
-        svg { max-width: 100%; height: auto; }
+        body { font-family: sans-serif; background: #121212; color: #fff; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: #1e1e1e; padding: 30px; border-radius: 16px; width: 100%; max-width: 800px; box-shadow: 0 10px 40px #000; border: 1px solid #333; }
+        .upload-zone { border: 2px dashed #00aaff; padding: 40px; text-align: center; border-radius: 12px; cursor: pointer; background: #252525; margin-bottom: 20px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #2a2a2a; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        label { font-size: 13px; color: #00aaff; font-weight: bold; margin-bottom: 8px; display: block; }
+        input[type="range"] { width: 100%; accent-color: #00aaff; cursor: pointer; }
+        button { width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 16px; }
+        #btn-process { background: #00aaff; color: white; margin-bottom: 10px; }
+        #btn-download { background: #2ecc71; color: white; display: none; }
+        #preview { background: white; margin-top: 20px; border-radius: 12px; min-height: 400px; display: flex; align-items: center; justify-content: center; padding: 10px; }
+        svg { max-width: 100%; height: auto; display: block; }
         .val { float: right; color: #fff; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; margin-top:0;">Smooth Tracer 8.0</h2>
+    <h2 style="text-align:center; margin-top:0;">Vector Contour v9.0</h2>
     
-    <div class="upload-zone" id="drop-zone">Нажмите для загрузки PNG</div>
+    <div class="upload-zone" id="drop-zone">📤 Загрузите PNG (черные линии)</div>
     <input type="file" id="file-input" accept="image/*" style="display:none">
 
     <div class="controls">
-        <div class="group">
-            <label>Гладкость (Игнорировать зазубрины): <span class="val" id="v-smooth">1.5</span></label>
-            <input type="range" id="i-smooth" min="1" max="100" value="15">
-            
-            <label>Порог черного: <span class="val" id="v-th">128</span></label>
+        <div>
+            <label>Сглаживание (Smooth): <span class="val" id="v-smooth">2</span></label>
+            <input type="range" id="i-smooth" min="0" max="10" value="2" step="0.5">
+        </div>
+        <div>
+            <label>Порог яркости: <span class="val" id="v-th">128</span></label>
             <input type="range" id="i-th" min="10" max="240" value="128">
         </div>
-        <div class="group">
-            <label>Слияние мелких зазоров: <span class="val" id="v-merge">0</span></label>
-            <input type="range" id="i-merge" min="0" max="10" value="0">
-            
-            <label>Минимальный размер детали: <span class="val" id="v-noise">5</span></label>
+        <div>
+            <label>Удаление мусора: <span class="val" id="v-noise">5</span></label>
             <input type="range" id="i-noise" min="0" max="100" value="5">
+        </div>
+        <div>
+            <label>Толщина линий: <span class="val" id="v-weight">0.5</span></label>
+            <input type="range" id="i-weight" min="0" max="5" value="0.5" step="0.1">
         </div>
     </div>
 
-    <button id="btn-process">⚡ СДЕЛАТЬ ЛИНИИ ИДЕАЛЬНЫМИ</button>
-    <button id="btn-download">💾 СКАЧАТЬ ГЛАДКИЙ SVG</button>
+    <button id="btn-process">⚡ ВЕКТОРИЗИРОВАТЬ КОНТУР</button>
+    <button id="btn-download">💾 СКАЧАТЬ SVG</button>
 
-    <div id="preview">Результат появится здесь</div>
+    <div id="preview">Превью появится здесь</div>
 </div>
 
 <script>
@@ -57,128 +58,110 @@
     const bDownload = document.getElementById('btn-download');
     const preview = document.getElementById('preview');
 
-    const updateLabel = (iId, vId, div = 1) => {
-        document.getElementById(iId).oninput = e => {
-            document.getElementById(vId).innerText = (e.target.value / div).toFixed(div === 1 ? 0 : 1);
-        };
+    const updateLabel = (iId, vId) => {
+        document.getElementById(iId).oninput = e => document.getElementById(vId).innerText = e.target.value;
     };
-    updateLabel('i-smooth', 'v-smooth', 10);
-    updateLabel('i-th', 'v-th');
-    updateLabel('i-merge', 'v-merge');
-    updateLabel('i-noise', 'v-noise');
+    ['i-smooth', 'i-th', 'i-noise', 'i-weight'].forEach(id => updateLabel(id, 'v-' + id.split('-')[1]));
 
     dZone.onclick = () => fInput.click();
 
     let finalSVG = "";
 
-    // Алгоритм Рамера-Дугласа-Пекера для выпрямления линий
-    function simplifyPath(points, tolerance) {
-        if (points.length < 3) return points;
-        let dmax = 0, index = 0;
-        for (let i = 1; i < points.length - 1; i++) {
-            let d = perpendicularDistance(points[i], points[0], points[points.length - 1]);
-            if (d > dmax) { index = i; dmax = d; }
-        }
-        if (dmax > tolerance) {
-            let res1 = simplifyPath(points.slice(0, index + 1), tolerance);
-            let res2 = simplifyPath(points.slice(index), tolerance);
-            return res1.slice(0, res1.length - 1).concat(res2);
-        } else {
-            return [points[0], points[points.length - 1]];
-        }
-    }
-
-    function perpendicularDistance(p, a, b) {
-        let n = Math.abs((b.y - a.y) * p.x - (b.x - a.x) * p.y + b.x * a.y - b.y * a.x);
-        let d = Math.sqrt(Math.pow(b.y - a.y, 2) + Math.pow(b.x - a.x, 2));
-        return n / d;
-    }
-
     bProcess.onclick = function() {
         const file = fInput.files[0];
-        if (!file) return alert("Загрузите файл!");
+        if (!file) return alert("Файл не выбран!");
 
         const reader = new FileReader();
-        reader.readAsDataURL(file);
         reader.onload = function(e) {
             const img = new Image();
             img.src = e.target.result;
             img.onload = function() {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = img.width; canvas.height = img.height;
+                canvas.width = img.width;
+                canvas.height = img.height;
                 ctx.fillStyle = "white";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
 
-                const th = parseInt(document.getElementById('i-th').value);
-                const tolerance = parseFloat(document.getElementById('i-smooth').value / 10);
-                const merge = parseInt(document.getElementById('i-merge').value);
+                const threshold = parseInt(document.getElementById('i-th').value);
+                const smooth = parseFloat(document.getElementById('i-smooth').value);
                 const noise = parseInt(document.getElementById('i-noise').value);
+                const weight = parseFloat(document.getElementById('i-weight').value);
 
                 const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
                 
-                // Трассировка
-                let paths = "";
+                // Функция проверки: черный или белый пиксель
+                const isBlack = (x, y) => {
+                    if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) return false;
+                    const idx = (y * canvas.width + x) * 4;
+                    return (data[idx] + data[idx+1] + data[idx+2]) / 3 < threshold;
+                };
+
+                let pathData = "";
                 let visited = new Uint8Array(canvas.width * canvas.height);
 
+                // Ищем границы (Трассировка)
                 for (let y = 0; y < canvas.height; y++) {
                     for (let x = 0; x < canvas.width; x++) {
-                        let idx = y * canvas.width + x;
-                        if (data[idx * 4] < th && !visited[idx]) {
+                        if (isBlack(x, y) && !visited[y * canvas.width + x]) {
+                            // Если нашли черный пиксель, который не посещали - это начало нового контура
                             let points = [];
-                            let curX = x, curY = y;
+                            let cx = x, cy = y;
                             
-                            // Простейший алгоритм обхода контура
-                            while (true) {
-                                points.push({x: curX, y: curY});
-                                visited[curY * canvas.width + curX] = 1;
+                            // Обход по границе (упрощенный следопыт)
+                            let directions = [[1,0], [0,1], [-1,0], [0,-1]];
+                            let d = 0;
+                            
+                            let startX = x, startY = y;
+                            do {
+                                points.push({x: cx, y: cy});
+                                visited[cy * canvas.width + cx] = 1;
                                 
-                                let found = false;
-                                for (let dy = -1; dy <= 1; dy++) {
-                                    for (let dx = -1; dx <= 1; dx++) {
-                                        let nx = curX + dx, ny = curY + dy;
-                                        if (nx >= 0 && nx < canvas.width && ny >= 0 && ny < canvas.height) {
-                                            let nIdx = ny * canvas.width + nx;
-                                            if (data[nIdx * 4] < th && !visited[nIdx]) {
-                                                curX = nx; curY = ny; found = true; break;
-                                            }
-                                        }
+                                let moved = false;
+                                for (let i = 0; i < 4; i++) {
+                                    let nd = (d + i + 3) % 4;
+                                    let nx = cx + directions[nd][0];
+                                    let ny = cy + directions[nd][1];
+                                    if (isBlack(nx, ny)) {
+                                        cx = nx; cy = ny; d = nd;
+                                        moved = true; break;
                                     }
-                                    if (found) break;
                                 }
-                                if (!found) break;
-                            }
+                                if (!moved) break;
+                            } while ((cx !== startX || cy !== startY) && points.length < 50000);
 
                             if (points.length > noise) {
-                                // УПРОЩЕНИЕ: Превращаем зазубрины в ровные линии
-                                let smoothPoints = simplifyPath(points, tolerance);
-                                let d = `M${smoothPoints[0].x} ${smoothPoints[0].y} `;
-                                for (let i = 1; i < smoothPoints.length; i++) {
-                                    d += `L${smoothPoints[i].x} ${smoothPoints[i].y} `;
+                                // Генерируем сглаженную линию контура
+                                pathData += ` M ${points[0].x} ${points[0].y}`;
+                                for (let i = 1; i < points.length; i++) {
+                                    if (i % (Math.floor(smooth) + 1) === 0 || i === points.length -1) {
+                                        pathData += ` L ${points[i].x} ${points[i].y}`;
+                                    }
                                 }
-                                d += "Z";
-                                paths += d;
+                                pathData += " Z";
                             }
                         }
                     }
                 }
 
+                // Итоговый SVG: используем stroke-linejoin для идеального сглаживания углов
                 finalSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}" viewBox="0 0 ${canvas.width} ${canvas.height}">
-                    <path d="${paths}" fill="black" stroke="black" stroke-width="${merge}" stroke-linejoin="round" stroke-linecap="round"/>
+                    <path d="${pathData}" fill="black" stroke="black" stroke-width="${weight}" stroke-linejoin="round" stroke-linecap="round" />
                 </svg>`;
                 
                 preview.innerHTML = finalSVG;
                 bDownload.style.display = "block";
             };
         };
+        reader.readAsDataURL(file);
     };
 
     bDownload.onclick = () => {
         const blob = new Blob([finalSVG], {type: 'image/svg+xml'});
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = "ultra_smooth.svg";
+        link.download = "smooth_contour.svg";
         link.click();
     };
 </script>
