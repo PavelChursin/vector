@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNG to SVG: Конвертер для печатей</title>
+    <!-- Подключаем библиотеку трассировки -->
+    <script src="https://cdn.jsdelivr.net/npm/potrace-js@1.0.3/dist/index.min.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; text-align: center; background: #f4f4f9; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        #canvas-preview { display: none; }
+        #svg-result { margin-top: 20px; border: 1px dashed #ccc; padding: 10px; background: #fff; min-height: 200px; display: flex; align-items: center; justify-content: center; }
+        svg { max-width: 100%; height: auto; }
+        .controls { margin: 20px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:disabled { background: #ccc; }
+        .download-btn { background: #28a745; margin-top: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Векторизатор для изготовления печатей</h2>
+    <p>Загрузите PNG, чтобы получить сглаженный SVG контур</p>
+    
+    <input type="file" id="upload" accept="image/png, image/jpeg">
+    
+    <div class="controls">
+        <label>Удаление мелких деталей: <input type="range" id="turdSize" min="0" max="100" value="20"></label>
+        <label>Сглаживание углов: <input type="range" id="alphaMax" min="0" max="130" value="100" step="10"></label>
+    </div>
+
+    <button id="process-btn">Создать вектор</button>
+
+    <div id="svg-result">Здесь появится результат...</div>
+    
+    <button id="download-btn" class="download-btn">Скачать SVG для печати</button>
+</div>
+
+<canvas id="canvas-preview"></canvas>
+
+<script>
+    const upload = document.getElementById('upload');
+    const processBtn = document.getElementById('process-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const svgResult = document.getElementById('svg-result');
+    const canvas = document.getElementById('canvas-preview');
+    const ctx = canvas.getContext('2d');
+
+    let currentSvgData = null;
+
+    processBtn.addEventListener('click', () => {
+        const file = upload.files[0];
+        if (!file) return alert('Выберите файл!');
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                // Подготовка канваса
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                // Настройки Potrace
+                const params = {
+                    turdSize: parseInt(document.getElementById('turdSize').value), // Удаляет пятна меньше X пикселей
+                    alphaMax: document.getElementById('alphaMax').value / 100,     // Сглаживание (чем меньше, тем острее углы)
+                    optCurve: true,
+                    optTolerance: 0.4
+                };
+
+                // Запуск трассировки
+                Potrace.loadImageFromUrl(event.target.result);
+                Potrace.process(function() {
+                    const svgString = Potrace.getSVG(1); // Масштаб 1
+                    svgResult.innerHTML = svgString;
+                    currentSvgData = svgString;
+                    downloadBtn.style.display = 'inline-block';
+                }, params);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        if (!currentSvgData) return;
+        const blob = new Blob([currentSvgData], {type: 'image/svg+xml'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'seal_vector.svg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+</script>
+
+</body>
+</html>
