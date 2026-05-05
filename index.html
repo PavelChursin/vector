@@ -2,114 +2,113 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Векторизатор для печатей</title>
-    <!-- Используем проверенную версию библиотеки через другой CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/potrace@1.1.2/dist/potrace.min.js"></script>
+    <title>Векторизатор Печатей v3</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eceff1; color: #333; line-height: 1.6; padding: 20px; }
-        .card { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { font-size: 24px; color: #2c3e50; margin-bottom: 20px; }
-        .upload-area { border: 2px dashed #3498db; padding: 20px; border-radius: 10px; margin-bottom: 20px; cursor: pointer; }
-        .params { display: flex; flex-direction: column; gap: 15px; text-align: left; margin-bottom: 20px; }
-        input[type="range"] { width: 100%; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        #processBtn { background: #3498db; color: white; }
-        #processBtn:hover { background: #2980b9; }
-        #downloadBtn { background: #27ae60; color: white; display: none; margin-top: 15px; }
-        #resultContainer { margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #fafafa; min-height: 100px; overflow: hidden; }
-        svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .loader { display: none; color: #f39c12; font-weight: bold; }
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 500px; padding: 25px; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center; }
+        .drop-zone { border: 2px dashed #007bff; padding: 30px; border-radius: 8px; margin-bottom: 20px; cursor: pointer; background: #f8f9fa; }
+        .drop-zone:hover { background: #e9ecef; }
+        .controls { text-align: left; margin-bottom: 20px; }
+        label { display: block; margin-top: 10px; font-weight: bold; font-size: 14px; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #btn-process { background: #007bff; color: white; }
+        #btn-download { background: #28a745; color: white; display: none; }
+        #preview { margin-top: 20px; border: 1px solid #ddd; padding: 10px; min-height: 150px; background: #fff; }
+        svg { max-width: 100%; height: auto; }
+        .error-log { color: red; font-size: 12px; margin-top: 10px; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>Конвертер для печатей (PNG → SVG)</h1>
+    <h2>PNG → SVG для печатей</h2>
     
-    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        Нажмите, чтобы выбрать PNG файл
-        <input type="file" id="fileInput" accept="image/*" style="display:none">
+    <div class="drop-zone" id="drop-zone">Нажмите или перетащите PNG</div>
+    <input type="file" id="file-input" accept="image/png, image/jpeg" style="display: none;">
+
+    <div class="controls">
+        <label>Сглаживание линий: <span id="val-alpha">1.0</span></label>
+        <input type="range" id="input-alpha" min="0" max="130" value="100">
+        
+        <label>Удаление мелких точек: <span id="val-turd">2</span></label>
+        <input type="range" id="input-turd" min="0" max="50" value="2">
     </div>
 
-    <div class="params">
-        <div>
-            <label>Удаление мусора (размер пятен): <b id="turdVal">2</b></label>
-            <input type="range" id="turdSize" min="0" max="100" value="2">
-        </div>
-        <div>
-            <label>Сглаживание углов: <b id="alphaVal">1.0</b></label>
-            <input type="range" id="alphaMax" min="0" max="130" value="100">
-        </div>
-    </div>
+    <button id="btn-process">Преобразовать в вектор</button>
+    <button id="btn-download">Скачать SVG</button>
 
-    <button id="processBtn">Обработать и сгладить</button>
-    <div id="loader" class="loader">Обработка... подождите</div>
-    
-    <div id="resultContainer">Тут будет ваш вектор</div>
-    
-    <button id="downloadBtn">Скачать готовый SVG</button>
+    <div id="preview">Результат появится здесь</div>
+    <div id="log" class="error-log"></div>
 </div>
 
+<!-- Подключаем библиотеку через проверенный источник -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/potrace/1.1.2/potrace.min.js"></script>
+
 <script>
-    const fileInput = document.getElementById('fileInput');
-    const processBtn = document.getElementById('processBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
-    const resultContainer = document.getElementById('resultContainer');
-    const loader = document.getElementById('loader');
+    const fileInput = document.getElementById('file-input');
+    const dropZone = document.getElementById('drop-zone');
+    const btnProcess = document.getElementById('btn-process');
+    const btnDownload = document.getElementById('btn-download');
+    const preview = document.getElementById('preview');
+    const log = document.getElementById('log');
 
-    // Обновление цифр в интерфейсе
-    document.getElementById('turdSize').oninput = e => document.getElementById('turdVal').innerText = e.target.value;
-    document.getElementById('alphaMax').oninput = e => document.getElementById('alphaVal').innerText = (e.target.value / 100).toFixed(1);
+    // Обновление цифр
+    document.getElementById('input-alpha').oninput = (e) => document.getElementById('val-alpha').innerText = (e.target.value/100).toFixed(1);
+    document.getElementById('input-turd').oninput = (e) => document.getElementById('val-turd').innerText = e.target.value;
 
-    let lastSvgString = "";
+    let currentSVG = "";
 
-    processBtn.onclick = function() {
-        const file = fileInput.files[0];
-        if (!file) { alert("Сначала выберите файл!"); return; }
+    dropZone.onclick = () => fileInput.click();
 
-        loader.style.display = "block";
-        const reader = new FileReader();
-
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                // Пытаемся вызвать Potrace
-                try {
-                    const options = {
-                        turdSize: parseInt(document.getElementById('turdSize').value),
-                        alphaMax: parseFloat(document.getElementById('alphaMax').value / 100),
-                        optCurve: true
-                    };
-
-                    // Важное исправление: работаем через конструктор
-                    const potrace = window.Potrace || Potrace;
-                    potrace.loadImageFromUrl(e.target.result);
-                    potrace.process(function() {
-                        const svg = potrace.getSVG(1);
-                        lastSvgString = svg;
-                        resultContainer.innerHTML = svg;
-                        downloadBtn.style.display = "block";
-                        loader.style.display = "none";
-                    }, options);
-
-                } catch (err) {
-                    console.error(err);
-                    alert("Ошибка при обработке. Попробуйте другой файл.");
-                    loader.style.display = "none";
-                }
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+    fileInput.onchange = (e) => {
+        if(e.target.files[0]) dropZone.innerText = "Файл выбран: " + e.target.files[0].name;
     };
 
-    downloadBtn.onclick = function() {
-        const blob = new Blob([lastSvgString], {type: 'image/svg+xml'});
+    btnProcess.onclick = function() {
+        const file = fileInput.files[0];
+        if (!file) return alert("Выберите файл!");
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        
+        reader.onload = function(event) {
+            try {
+                if (typeof Potrace === 'undefined') {
+                    throw new Error("Библиотека Potrace не загрузилась. Проверьте интернет.");
+                }
+
+                Potrace.loadImageFromUrl(event.target.result);
+                Potrace.process(function() {
+                    const options = {
+                        alphaMax: parseFloat(document.getElementById('input-alpha').value / 100),
+                        turdSize: parseInt(document.getElementById('input-turd').value),
+                        optCurve: true
+                    };
+                    
+                    // Повторный запуск с параметрами для точности
+                    Potrace.process(function() {
+                        currentSVG = Potrace.getSVG(1);
+                        preview.innerHTML = currentSVG;
+                        btnDownload.style.display = "block";
+                        log.innerText = ""; // Чистим ошибки
+                    }, options);
+                });
+            } catch (err) {
+                log.innerText = "Ошибка: " + err.message;
+                console.error(err);
+            }
+        };
+    };
+
+    btnDownload.onclick = function() {
+        const blob = new Blob([currentSVG], {type: 'image/svg+xml'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'pechat_pro.svg';
+        a.download = 'vector_print.svg';
         a.click();
+        URL.revokeObjectURL(url);
     };
 </script>
 
